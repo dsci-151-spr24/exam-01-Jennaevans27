@@ -171,8 +171,23 @@ weather %>%
     b\.
     Comment on how the likelihood of being delayed change throughout the day?
 
-
-
+``` {r} 
+flights <- flights %>%
+  mutate(time_of_day = case_when(
+    sched_dep_time >= 001  & sched_dep_time <= 600  ~ "12:01am-6am",
+    sched_dep_time >= 601  & sched_dep_time <= 1200 ~ "6:01am-12pm",
+    sched_dep_time >= 1201 & sched_dep_time <= 1800 ~ "12:01pm-6pm",
+    sched_dep_time >= 1801                          ~ "6:01pm-12am"
+  ))
+flights %>%
+  filter(!is.na(dep_delay)) %>%
+  mutate(dep_delayed = ifelse(dep_delay > 0, "delayed", "ontime")) %>%
+  count(time_of_day, dep_delayed) %>%
+  group_by(time_of_day) %>%
+  mutate(prop_delayed = n / sum(n)) %>%
+  filter(dep_delayed == "delayed") %>%
+  arrange(prop_delayed)
+``` 
 6.  **Question 6 (15 points)** - Find the flight with the longest air time.
 
     a\.
@@ -183,6 +198,14 @@ weather %>%
 
     c\.
     How many seats does the plane that flew this flight have?
+``` {r}
+flights %>%
+  arrange(desc(air_time)) %>%
+  slice(1) %>%
+  select(air_time, dest, tailnum) %>%
+  inner_join(planes, by = "tailnum") %>%
+  select(air_time, dest, tailnum, seats)
+```
 
 7.  **Question 7 (15 pts)** - The `airports` data frame contains information on a large number of primarily American airports.
     These data include location information for these airports in the form of latitude and longitude coordinates.
@@ -192,11 +215,45 @@ weather %>%
     *Hint:* You will first need to limit your analysis to the Contiguous United States.
     [This Wikipedia article](https://en.wikipedia.org/wiki/List_of_extreme_points_of_the_United_States) can help, but you're welcomed to use other resources as well.
     Make sure to cite whatever resource you use.
+    
+**The Northernmost point in the 48 contiguous states is Northwest Angle Inlet in Lake of the Woods, in Minnesota with a latitudinal of 49.384472 and longitiude of -95.155589.** 
+
+**The Southernmost point is Ballast Key Florida with a latitude of 24.520833 with a longitude of -81.963611.** 
+
+**The Easternmost point is Sail Rock, Main. With a latitude of 44.81255 and longitude of -66.9470277.** 
+
+**And the Westernmost point is Bodelteh Islands right, off the shore of Cape Alava in Washington, with a latitude of 48.1785277 and longitude of -124.7716945.**
+
+```{r} 
+airports %>% 
+  filter(
+    lat > 24.520833 & lat < 49.384472, 
+    lon > -124.7716945 & lon < -66.9470277
+  ) %>% 
+  ggplot(aes(x = lon))+
+  geom_histogram (binwidth = 7)
+```
 
 8.  **Question 8 (15 pts)** - Recreate the plot included below using the `flights` data.
     Once you have created the visualization, in no more than one paragraph, describe what you think the point of this visualization might be.
     *Hint:* The visualization uses the variable `arrival`, which is not included in the `flights` data frame.
     You will have to create `arrival` yourself, it is a categorical variable that is equal to `"ontime"` when `arr_delay <= 0` and `"delayed"` when `arr_delay > 0`.
+
+```{r} 
+flights %>% 
+  filter(month == 12, dest %in% c("PHL", "RDU")) %>% 
+  mutate(arrival = ifelse(arr_delay > 0, "delayed", "online")) %>% 
+  filter(!is.na(arrival)) %>% 
+  ggplot(aes(x = arrival, y= dep_delay, color = dest)) + 
+  geom_boxplot() + 
+  facet_grid(dest~origin) + 
+  labs(title = "On time performance of NYC flights", 
+       subtitle = "December 2013", 
+       x="Arrival", 
+       y = "Departure delay", 
+       color= "Destination")
+```
+
 
 ![](img/plot-to-recreate.png)
 
