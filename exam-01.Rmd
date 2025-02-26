@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Academic Integrity Statement
 
-*I, \_\_\_\_\_\_\_\_\_\_\_\_, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
+*I, Jenna Evans, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
 
 **A note on sharing / reusing code:** I am well aware that a huge volume of code is available on the web to solve any number of problems.
 For this exam you are allowed to make use of any online resources (e.g. StackOverflow) but you must explicitly cite where you obtained any code you directly use (or use as inspiration).
@@ -108,6 +108,7 @@ The main data is in the `flights` data frame, but there are additional data sets
 1.  **Question 1 (10 points)** - What are the ten most common destinations for flights from NYC airports in 2013?
     Make a table that lists these in descending order of frequency and shows the number of fligts heading to each airport.
 
+**The top 10 most common destination for flights from NYC in 2013, was Chicago, Atlanta , Los angeles, Boston, Orlando, Charlotte Douglas, Sans Francisco, Fort Lauderdale, Miami and coming in, in 10th is Ronald Reagan Washington. The code reads as Counting the number of flights per destination (count(dest)), then sorting them in descending order (arrange(desc(n))) and selecting the top 10 destinations (slice(1:10)).**
 ```{r} 
 flights %>% 
   count(dest) %>%
@@ -121,6 +122,9 @@ flights %>%
     Make a table that lists these in descending order of frequency and shows the number of flights for each airline.
     In your narrative mention the names of the airlines as well.
     *Hint:* You can use the `airlines` dataset to look up the airline name based on `carrier` code.
+
+**The top five arilines that have the most flights deaprting from NYC is at number 1, United Airlines, Then Jetblue Airlines, Expressjet airlines, Delta airlines and then at number 5, American Airlines. This code reads the same as the first question with counting and arranging the table in descending order but with airlines and the carrier instead, using inner_join to add the carrier names.**      
+    
     
 ```{r} 
 flights %>% 
@@ -134,9 +138,12 @@ flights %>%
 
     a\.
     Which carrier had the highest mean arrival delay?
-
+**Frontier Airlines Inc. (F9) with a mean arrival delay of 21.920705.**
+    
     b\.
     Which carrier had the lowest mean arrival delay?
+**Alaska Airlines Inc. (AS) with the lowest mean arrival delay of -9.930889.**
+
     
 ```{r} 
 flights %>% 
@@ -151,6 +158,8 @@ flights %>%
 
 4.  **Question 4 (10 points)** - What was the mean temperature at the origin airport on the day with the highest departure delay?
     Your answer should include the name of origin airport, the date with the highest departure delay, and the mean temperature on that day.
+    
+**The mean temperature at JFK on the day of the highest departure delay was 42.6575	degrees with a departure delay of 1301 minutes or 21 hours and 41 minutes on Jaunury 9th of 2013.**
     
 ```{r} 
 flights %>% 
@@ -168,8 +177,14 @@ weather %>%
     a\.
     Calculate the proportion of flights that are delayed at departure at each of these time intervals.
 
+
+**Between 12:01AM and 6AM 20.7% of flights were delayed. Between 6:01AM and 12PM there was about 26% delayed, between 12:01pm and 6pm 46.3% of flights were dealyed and then between 6:01pm and 12am there was about 52% of flights were delayed.**
+
     b\.
     Comment on how the likelihood of being delayed change throughout the day?
+**The likelihood of flights being delayed increases throughout the day.** 
+
+**The mutate function created a new classification for the time of day and the schedule departure time. Then the second chunk filters out missing delay departure, then classifying flights as "delayed" or "ontime" (mutate(dep_delayed)). Then with the count function, counting the number of delayed vs. on-time flights for each time range (count(time_of_day, dep_delayed)). (mutate(prop_delayed)), sorts out the proportion of delays within each time range that was given. Then the code filter(dep_delayed == "delayed") and arrange(prop_delayed) allows to filter only the departure delayed and then sorting the among from least to most delayed times.** 
 
 ``` {r} 
 flights <- flights %>%
@@ -192,12 +207,23 @@ flights %>%
 
     a\.
     How long is this flight?
+    
+**695 minutes or 11 hours and 35 minutes.**
 
     b\.
     What city did it fly to?
+    
+**From NYC to Honolulu, Hawaii**
+
+[https://airports.hawaii.gov/hnl/#:~:text=The%20Daniel%20K.%20Inouye%20International,the%20island%20of%20O'ahu.]
 
     c\.
     How many seats does the plane that flew this flight have?
+    
+**292 seats** 
+
+**arrange(desc(air_time)) sorts the flights by air time, then slice(1) filters out the longest flight in the data, (select(air_time, dest, tailnum)) selects the air time, destination, and tail number,inner_join(planes, by = "tailnum") allows to get the number of seats on the plan.** 
+
 ``` {r}
 flights %>%
   arrange(desc(air_time)) %>%
@@ -224,6 +250,9 @@ flights %>%
 
 **And the Westernmost point is Bodelteh Islands right, off the shore of Cape Alava in Washington, with a latitude of 48.1785277 and longitude of -124.7716945.**
 
+**I used https://en.wikipedia.org/wiki/List_of_extreme_points_of_the_United_States to get the information of each point and then https://geohack.toolforge.org/geohack.php?pagename=List_of_extreme_points_of_the_United_States&params=49_23_04.1_N_95_9_12.2_W_region:US-MN&title=Northwest+Angle for the Longitude and latitude**
+
+**Going through the code the filter function helps filter out the lowest and highest longitude and latitude and then ggplot and geom_histogram allows for the plot of the histogram with longitude as x and count as y and binwidth groups longitudes into 7-degree intervals.** 
 ```{r} 
 airports %>% 
   filter(
@@ -238,11 +267,13 @@ airports %>%
     Once you have created the visualization, in no more than one paragraph, describe what you think the point of this visualization might be.
     *Hint:* The visualization uses the variable `arrival`, which is not included in the `flights` data frame.
     You will have to create `arrival` yourself, it is a categorical variable that is equal to `"ontime"` when `arr_delay <= 0` and `"delayed"` when `arr_delay > 0`.
+    
+**The purpose of this visualization is to view the relationship between departure delays and arrival status (on time vs. delayed) for flights departing NYC to PHL (Philadelphia) and RDU (Raleigh-Durham) in December 2013.The boxplots show the distribution of departure delays based on whether a flight arrived on time or was delayed. By faceting the plot by origin and destination, we can see if specific routes have different delay patterns. If flights that arrive late tend to have greater departure delays, this suggests that departure delays contribute to late arrivals.** 
 
 ```{r} 
 flights %>% 
   filter(month == 12, dest %in% c("PHL", "RDU")) %>% 
-  mutate(arrival = ifelse(arr_delay > 0, "delayed", "online")) %>% 
+  mutate(arrival = ifelse(arr_delay > 0, "delayed", "ontime")) %>% 
   filter(!is.na(arrival)) %>% 
   ggplot(aes(x = arrival, y= dep_delay, color = dest)) + 
   geom_boxplot() + 
@@ -253,9 +284,11 @@ flights %>%
        y = "Departure delay", 
        color= "Destination")
 ```
+***Sources*** 
 
+**https://www2.stat.duke.edu/courses/Spring18/Sta199/exam/midterm-01-post.html**
 
-![](img/plot-to-recreate.png)
+**https://r4ds.had.co.nz/index.html** 
 
 **Extra Credit (5 pts)** - Create a visualization that effectively shows if there is a relationship between the average daily departure delay and the average daily temperature for all three New York city airports.
 Your answer must be given in a single pipe.
